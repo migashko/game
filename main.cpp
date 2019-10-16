@@ -3,7 +3,9 @@
 #include <list>
 #include <cmath>
 #include <chrono>
-using namespace sf;
+
+#include <memory>
+
 using namespace std::chrono;
 
 const int W = 1200;
@@ -11,41 +13,52 @@ const int H = 800;
 
 float DEGTORAD = 0.017453f;
 
-class Animation
+class animator
 {
-   public:
-   float Frame, speed;
-   Sprite sprite;
-   std::vector<IntRect> frames;
+public:
+  typedef std::shared_ptr<animator> ptr;
+  animator(){}
+  animator(sf::Texture &t, int x, int y, int w, int h, int count, float Speed)
+  {
+    _current_frame = 0;
+    _speed = Speed;
 
-   Animation(){}
+    for (int i=0;i<count;i++)
+      _frames.push_back( sf::IntRect(x+i*w, y, w, h)  );
 
-   Animation (Texture &t, int x, int y, int w, int h, int count, float Speed)
-   {
-     Frame = 0;
-     speed = Speed;
+    _sprite.setTexture(t);
+    _sprite.setOrigin(w/2,h/2);
+    _sprite.setTextureRect(_frames[0]);
+  }
+  
+  void update()
+  {
+    _current_frame += _speed;
+    int n = _frames.size();
+    if ( _current_frame >= n )
+      _current_frame -= n;
+     
+    if ( n>0 )
+      _sprite.setTextureRect( _frames[ static_cast<int>(_current_frame)] );
+  }
 
-     for (int i=0;i<count;i++)
-      frames.push_back( IntRect(x+i*w, y, w, h)  );
-
-     sprite.setTexture(t);
-     sprite.setOrigin(w/2,h/2);
-     sprite.setTextureRect(frames[0]);
-   }
-
-
-   void update()
-   {
-     Frame += speed;
-     int n = frames.size();
-     if (Frame >= n) Frame -= n;
-     if (n>0) sprite.setTextureRect( frames[int(Frame)] );
-   }
-
-   bool isEnd()
-   {
-     return Frame+speed>=frames.size();
-   }
+  bool isEnd()
+  {
+    return _current_frame + _speed >= _frames.size();
+  }
+   
+  void draw(sf::RenderWindow &app, float x, float y, float angle)
+  {
+    _sprite.setPosition(x,y);
+    _sprite.setRotation(angle+90);
+    app.draw(_sprite);
+  }
+   
+private:
+   float _current_frame = 0.0;
+   float _speed = 0.0;
+   sf::Sprite _sprite;
+   std::vector<sf::IntRect> _frames;
 
 };
 
@@ -54,16 +67,16 @@ class Entity
 {
    public:
    float x,y,dx,dy,R,angle;
-   bool life;
+   bool life = 1;
    std::string name;
-   Animation anim;
+   animator anim;
 
    Entity()
    {
      life=1;
    }
 
-   void settings(Animation &a,int X,int Y,float Angle=0,int radius=1)
+   void settings(const animator &a,int X,int Y,float Angle=0,int radius=1)
    {
      anim = a;
      x=X; y=Y;
@@ -73,14 +86,12 @@ class Entity
 
    virtual void update(){};
 
-   void draw(RenderWindow &app)
+   void draw(sf::RenderWindow &app)
    {
-     anim.sprite.setPosition(x,y);
-     anim.sprite.setRotation(angle+90);
-     app.draw(anim.sprite);
-
-     CircleShape circle(R);
-     circle.setFillColor(Color(255,0,0,170));
+     anim.draw(app, x, y, angle);
+     
+     sf::CircleShape circle(R);
+     circle.setFillColor(sf::Color(255,0,0,170));
      circle.setPosition(x,y);
      circle.setOrigin(R,R);
      //app.draw(circle);
@@ -122,15 +133,19 @@ class bullet: public Entity
 
    void  update()
    {
-     dx=cos(angle*DEGTORAD)*6;
-     dy=sin(angle*DEGTORAD)*6;
-     // angle+=rand()%7-3;  /*try this*/
+     dx=cos(angle*DEGTORAD)*6 + start_dx;
+     dy=sin(angle*DEGTORAD)*6 + start_dy;
+     // "Покачивание" пуль
+     //angle+=rand()%7-3;  /*try this*/
+     //angle+=rand()%20-10;  /*try this*/
      x+=dx;
      y+=dy;
 
      if (x>W || x<0 || y>H || y<0) life=0;
    }
-
+   
+   float start_dx = 0;
+   float start_dy = 0;
 };
 
 
@@ -147,11 +162,15 @@ class player: public Entity
    void update()
    {
      if (thrust)
-      { dx+=cos(angle*DEGTORAD)*0.2;
-        dy+=sin(angle*DEGTORAD)*0.2; }
-     else
-      { dx*=0.99;
-        dy*=0.99; }
+     {
+        dx+=cos(angle*DEGTORAD)*0.2;
+        dy+=sin(angle*DEGTORAD)*0.2; 
+    }
+    else
+    {
+      dx*=0.99;
+      dy*=0.99; 
+    }
 
     int maxSpeed=15;
     float speed = sqrt(dx*dx+dy*dy);
@@ -181,10 +200,10 @@ int main()
 {
     srand(time(0));
 
-    RenderWindow app(VideoMode(W, H), "Asteroids!");
+    sf::RenderWindow app(sf::VideoMode(W, H), "Asteroids!");
     app.setFramerateLimit(60);
 
-    Texture t1,t2,t3,t4,t5,t6,t7;
+    sf::Texture t1,t2,t3,t4,t5,t6,t7;
     t1.loadFromFile("images/spaceship.png");
     t2.loadFromFile("images/background.jpg");
     t3.loadFromFile("images/explosions/type_C.png");
@@ -196,15 +215,15 @@ int main()
     t1.setSmooth(true);
     t2.setSmooth(true);
 
-    Sprite background(t2);
+    sf::Sprite background(t2);
 
-    Animation sExplosion(t3, 0,0,256,256, 48, 0.5);
-    Animation sRock(t4, 0,0,64,64, 16, 0.2);
-    Animation sRock_small(t6, 0,0,64,64, 16, 0.2);
-    Animation sBullet(t5, 0,0,32,64, 16, 0.8);
-    Animation sPlayer(t1, 40,0,40,40, 1, 0);
-    Animation sPlayer_go(t1, 40,40,40,40, 1, 0);
-    Animation sExplosion_ship(t7, 0,0,192,192, 64, 0.5);
+    auto sExplosion=std::make_shared<animator>(t3, 0,0,256,256, 48, 0.5);
+    auto sRock=std::make_shared<animator>(t4, 0,0,64,64, 16, 0.2);
+    auto sRock_small=std::make_shared<animator>(t6, 0,0,64,64, 16, 0.2);
+    auto sBullet=std::make_shared<animator>(t5, 0,0,32,64, 16, 0.8);
+    auto sPlayer=std::make_shared<animator>(t1, 40,0,40,40, 1, 0);
+    auto sPlayer_go=std::make_shared<animator>(t1, 40,40,40,40, 1, 0);
+    auto sExplosion_ship=std::make_shared<animator>(t7, 0,0,192,192, 64, 0.5);
 
 
     std::list<Entity*> entities;
@@ -212,12 +231,12 @@ int main()
     for(int i=0;i<15;i++)
     {
       asteroid *a = new asteroid();
-      a->settings(sRock, rand()%W, rand()%H, rand()%360, 25);
+      a->settings(*sRock, rand()%W, rand()%H, rand()%360, 25);
       entities.push_back(a);
     }
 
     player *p = new player();
-    p->settings(sPlayer,200,200,0,20);
+    p->settings(*sPlayer,200,200,0,20);
     entities.push_back(p);
 
     auto gun_time = high_resolution_clock::now();
@@ -225,28 +244,30 @@ int main()
     /////main loop/////
     while (app.isOpen())
     {
-      Event event;
+      sf::Event event;
       if (app.pollEvent(event))
       {
-        if (event.type == Event::Closed)
+        if (event.type == sf::Event::Closed)
           app.close();
       }
 
-      if (Keyboard::isKeyPressed(Keyboard::Space))
+      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
       {
         auto now = high_resolution_clock::now();
-        if ( 75000 < duration_cast<std::chrono::microseconds>(now - gun_time).count() )
+        if ( /*75000*/ 35000 < duration_cast<std::chrono::microseconds>(now - gun_time).count() )
         {
           gun_time = now;
           bullet *b = new bullet();
-          b->settings(sBullet,p->x,p->y,p->angle,10);
+          b->settings(*sBullet,p->x,p->y,p->angle,10);
+          b->start_dx = p->dx;
+          b->start_dy = p->dy;
           entities.push_back(b);
         }
       }
 
-      if (Keyboard::isKeyPressed(Keyboard::Right)) p->angle+=3;
-      if (Keyboard::isKeyPressed(Keyboard::Left))  p->angle-=3;
-      if (Keyboard::isKeyPressed(Keyboard::Up)) p->thrust=true;
+      if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) p->angle+=3;
+      if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  p->angle-=3;
+      if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) p->thrust=true;
       else p->thrust=false;
 
       for(auto a:entities)
@@ -254,22 +275,24 @@ int main()
         for(auto b:entities)
         {
           if (a->name=="asteroid" && b->name=="bullet")
-          if ( isCollide(a,b) )
           {
-            a->life=false;
-            b->life=false;
-
-            Entity *e = new Entity();
-            e->settings(sExplosion,a->x,a->y);
-            e->name="explosion";
-            entities.push_back(e);
-
-            for(int i=0;i<2;i++)
+            if ( isCollide(a,b) )
             {
-              if (a->R==15) continue;
-              Entity *e = new asteroid();
-              e->settings(sRock_small,a->x,a->y,rand()%360,15);
+              a->life=false;
+              b->life=false;
+
+              Entity *e = new Entity();
+              e->settings(*sExplosion,a->x,a->y);
+              e->name="explosion";
               entities.push_back(e);
+
+              for(int i=0;i<2;i++)
+              {
+                if (a->R==15) continue;
+                Entity *e = new asteroid();
+                e->settings(*sRock_small,a->x,a->y,rand()%360,15);
+                entities.push_back(e);
+              }
             }
           }
 
@@ -280,19 +303,19 @@ int main()
               b->life=false;
 
               Entity *e = new Entity();
-              e->settings(sExplosion_ship,a->x,a->y);
+              e->settings(*sExplosion_ship,a->x,a->y);
               e->name="explosion";
               entities.push_back(e);
 
-              p->settings(sPlayer,W/2,H/2,0,20);
+              p->settings(*sPlayer,W/2,H/2,0,20);
               p->dx=0; p->dy=0;
             }
           }
         }
       }
 
-      if (p->thrust)  p->anim = sPlayer_go;
-      else   p->anim = sPlayer;
+      if (p->thrust)  p->anim = *sPlayer_go;
+      else   p->anim = *sPlayer;
 
       for(auto e:entities)
       {
@@ -303,7 +326,7 @@ int main()
       if (rand()%150==0)
       {
         asteroid *a = new asteroid();
-        a->settings(sRock, 0,rand()%H, rand()%360, 25);
+        a->settings(*sRock, 0,rand()%H, rand()%360, 25);
         entities.push_back(a);
       }
 
