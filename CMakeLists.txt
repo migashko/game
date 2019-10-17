@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(asteroids)
 
+
 ## If you want to link SFML statically
 set(SFML_STATIC_LIBRARIES FALSE)
 
