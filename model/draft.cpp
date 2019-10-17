@@ -1,4 +1,3 @@
-#include <SFML/Graphics.hpp>
 #include <time.h>
 #include <list>
 #include <cmath>
@@ -11,206 +10,91 @@
 
 using namespace std::chrono;
 
-const int W = 1200;
-const int H = 800;
-
-float DEGTORAD = 0.017453f;
-
-struct position
-{
-  float x = 0.0;
-  float y = 0.0;
-  float a = 0.0; // угол
-};
-
-
-class animator
-{
-public:
-  typedef std::shared_ptr<animator> ptr;
-  animator(){}
-  animator(sf::Texture &t, int x, int y, int w, int h, int count, float Speed)
-  {
-    _current_frame = 0;
-    _speed = Speed;
-
-    for (int i=0;i<count;i++)
-      _frames.push_back( sf::IntRect(x+i*w, y, w, h)  );
-
-    _sprite.setTexture(t);
-    _sprite.setOrigin(w/2,h/2);
-    _sprite.setTextureRect(_frames[0]);
-  }
-  
-void set_alfa(uint8_t alpha)
-{
-  auto c = _sprite.getColor();
-  c.a = alpha;
-  _sprite.setColor(c);
-}
-
-  void update()
-  {
-    _current_frame += _speed;
-    int n = _frames.size();
-    if ( _current_frame >= n )
-      _current_frame -= n;
-
-    if ( n>0 )
-      _sprite.setTextureRect( _frames[ static_cast<int>(_current_frame)] );
-  }
-
-  bool isEnd()
-  {
-    return _current_frame + _speed >= _frames.size();
-  }
-
-  void draw(sf::RenderWindow &app, const position& pos)
-  {
-    _sprite.setPosition(pos.x, pos.y);
-    _sprite.setRotation(pos.a+90);
-    app.draw(_sprite);
-  }
-
-private:
-   float _current_frame = 0.0;
-   float _speed = 0.0;
-   sf::Sprite _sprite;
-   std::vector<sf::IntRect> _frames;
-
-};
-
 
 namespace model{
 
-class imodel
-{
-public:
-  virtual ~imodel() {}
-  virtual void update() = 0;
-  virtual position get_position() const = 0;
-  virtual void set_position( const position& p) = 0;
-  virtual position get_delta() const = 0;
-  virtual float get_radius() const = 0;
-  virtual void rotate(float dr) = 0;
-  virtual void thrust(bool value) = 0;
-  virtual bool is_thrust() = 0;
-  virtual void set_delta( const position& p) = 0;
-  virtual bool is_life() const= 0;
+  
 
-  virtual void kill(bool value)= 0;
+
+struct ibullet: ientity
+{
+  typedef std::shared_ptr<ibullet> ptr;
+  virtual ~ibullet() {}
+  // Определяет текстуру 
+  virtual size_t type() const = 0;
 };
 
-class entity: public imodel
+
+// Описание оружия 
+struct iweapon
 {
-public:
-  typedef std::shared_ptr<entity> ptr;
-  virtual ~entity(){}
-
-  entity(const position& pos,int radius=1)
-    : _pos(pos)
-    , _radius(radius)
-  { }
-
-  virtual position get_position() const
-  {
-    return _pos;
-  }
-
-  virtual position get_delta() const
-  {
-    return _delta;
-  }
-
-  virtual float get_radius() const
-  {
-    return _radius;
-  }
-
-  virtual void rotate(float da)
-  {
-    _pos.a += da;
-  }
-
-  virtual void thrust(bool value)
-  {
-    _thrust = value;
-  }
-
-  virtual bool is_thrust()
-  {
-    return _thrust;
-  }
-
-  virtual bool is_life() const
-  {
-    return _life;
-  }
-
-  virtual void kill(bool value)
-  {
-    _life = !value;
-  }
-
-  virtual void set_delta( const position& p)
-  {
-    _delta = p;
-  }
-
-  virtual void set_position( const position& p)
-  {
-    _pos = p;
-  }
-
-  virtual void update() override
-  {
-  }
-
-  bool is_collide(const entity& other)
-  {
-    position a = this->get_position();
-    float ar = this->get_radius();
-    position b = other.get_position();
-    float br = other.get_radius();
-    return (b.x - a.x)*(b.x - a.x)+
-           (b.y - a.y)*(b.y - a.y)<
-           (ar + br)*(ar + br);
-  }
-
-protected:
-  position _pos;
-  position _delta;
-  int _radius = 0;
-  bool _life = true;
-  bool _thrust = false;
+  typedef std::shared_ptr<iweapon> ptr;
+  virtual ~iweapon() {}
 };
 
-class asteroid: public entity
+struct iship: ientity
+{
+public:
+  // Определяет текстуру 
+  virtual size_t type() const = 0;
+  // Неуязвимый
+  virtual bool is_unbreakable() const = 0;
+  // разгоняеться ( 0 нет, степень ускорения )
+  virtual bool is_thrust() const = 0;
+  // Тормозит ( 0 нет, степень ускорения )
+  virtual bool is_breaking() const = 0;
+  // ведет стрельбу ( 0 нет, степень ускорения )
+  virtual bool is_shooting() const = 0;
+  
+  virtual iweapon::ptr get_weapon() const = 0;
+};
+
+// Взрыв
+class iexplosion: ientity
+{
+public:
+  // Определяет текстуру 
+  virtual size_t type() const = 0;
+}
+
+
+
+class asteroid: public entity_t<iasteroid>
 {
 public:
   typedef std::shared_ptr<asteroid> ptr;
 
-  asteroid(const position& pos,int radius=1)
-    : entity(pos, radius)
+  asteroid(const imodel::ptr& m)
+    : entity_t<iasteroid>(m)
   {
-    _delta.x=rand()%8-4;
-    _delta.y=rand()%8-4;
+    this->set_delta(position{rand()%8-4, rand()%8-4});
   }
 
   virtual void update() override
   {
-    _pos.x+=_delta.x;
-    _pos.y+=_delta.y;
+    position p = this->get_position();
+    position d = this->get_delta();
+    
+    p.x+=d.x;
+    p.y+=d.y;
 
-    if (_pos.x>W) _pos.x=0;  if ( _pos.x<0 ) _pos.x = W;
-    if (_pos.y>H) _pos.y=0;  if ( _pos.y<0 ) _pos.y = H;
+    if ( p.x>W ) p.x = 0;
+    if ( p.x<0 ) p.x = W;
+    if ( p.y>H ) p.y=0;
+    if ( p.y<0 ) p.y = H;
+    this->set_position(p);
   }
 };
 
-class bullet: public entity
+class bullet: public entity_t<ibullet>
 {
 public:
   typedef std::shared_ptr<bullet> ptr;
+
+  bullet(const imodel::ptr& m)
+    : entity_t<ibullet>(m)
+  {}
+  /*
   bullet(const position& pos,int radius=1)
     : entity(pos, radius)
   {}
@@ -219,85 +103,123 @@ public:
     : entity(pos, radius)
     , start_dx(delta.x)
     , start_dy(delta.y)
-  {}
+  {}*/
 
   virtual void update() override
   {
-    _delta.x=cos(_pos.a*DEGTORAD)*6 + start_dx;
-    _delta.y=sin(_pos.a*DEGTORAD)*6 + start_dy;
+    position p = this->get_position();
+    position d = this->get_delta();
+
+    d.x=cos(p.a*DEGTORAD)*6 + start_dx;
+    d.y=sin(p.a*DEGTORAD)*6 + start_dy;
      // "Покачивание" пуль
      //angle+=rand()%7-3;  /*try this*/
      //angle+=rand()%20-10;  /*try this*/
-    _pos.x+=_delta.x;
-    _pos.y+=_delta.y;
+    p.x+=d.x;
+    p.y+=d.y;
 
-     if ( _pos.x > W || _pos.x < 0 || _pos.y > H || _pos.y < 0 )
-       _life=false;
+     if ( p.x > W || p.x < 0 || p.y > H || p.y < 0 )
+       this->kill(true);
+     this->set_position(p);
    }
 
-   float start_dx = 0;
-   float start_dy = 0;
+   // Убрать
+   // float start_dx = 0;
+   // float start_dy = 0;
 };
 
-class player: public entity
+class ship: public entity_t<iship>
 {
 public:
-  typedef std::shared_ptr<player> ptr;
+  typedef std::shared_ptr<ship> ptr;
 
-  player(const position& pos,int radius=1)
-    : entity(pos, radius)
+  ship(const imodel::ptr& m)
+    : entity_t<iship>(m)
   {}
 
   virtual void update() override
   {
+    position p = this->get_position();
+    position d = this->get_delta();
+
     if ( _thrust )
     {
-      _delta.x+=cos(_pos.a*DEGTORAD)*0.2;
-      _delta.y+=sin(_pos.a*DEGTORAD)*0.2;
+      d.x+=cos(p.a*DEGTORAD)*0.2;
+      d.y+=sin(p.a*DEGTORAD)*0.2;
     }
     else if ( _breaking )
     {
-      /*_delta.x*=0.98;
-      _delta.y*=0.98  ;*/
-      _delta.x*=0.95;
-      _delta.y*=0.95;
+      /*d.x*=0.98;
+      d.y*=0.98  ;*/
+      d.x*=0.95;
+      d.y*=0.95;
     }
 
     int maxSpeed=15;
-    float speed = sqrt(_delta.x*_delta.x+_delta.y*_delta.y);
+    float speed = sqrt(d.x*d.x+d.y*d.y);
     if ( speed > maxSpeed )
     {
-      _delta.x *= maxSpeed/speed;
-      _delta.y *= maxSpeed/speed;
+      d.x *= maxSpeed/speed;
+      d.y *= maxSpeed/speed;
     }
 
-    _pos.x += _delta.x;
-    _pos.y += _delta.y;
+    p.x += d.x;
+    p.y += d.y;
 
-    if ( _pos.x > W ) _pos.x=0;
-    if ( _pos.x< 0 ) _pos.x=W;
-    if ( _pos.y>H ) _pos.y=0;
-    if ( _pos.y<0 ) _pos.y=H;
-   }
+    if ( p.x > W ) p.x=0;
+    if ( p.x< 0 ) p.x=W;
+    if ( p.y>H ) p.y=0;
+    if ( p.y<0 ) p.y=H;
+    this->set_position(p);
+  }
 
   void fire(bool value)
   {
-    _fire = value;
+    _shooting = value;
   }
 
   bool is_fire() const
   {
-    return _fire;
+    return _shooting;
   }
   
   void breaking(bool value)
   {
     _breaking = value;
   }
+  
+  virtual bool is_breaking() const override
+  {
+    return _breaking;
+  }
+  
+  virtual bool is_unbreakable() const override
+  {
+    return _unbreakable;
+  }
 
-
-  bool _fire = false;
+  /*
+  virtual bool is_thrust() const = 0;
+  // Тормозит ( 0 нет, степень ускорения )
+  virtual bool is_breaking() const = 0;
+  // ведет стрельбу ( 0 нет, степень ускорения )
+  virtual bool is_shooting() const = 0;
+  virtual bool is_unbreakable() const = 0;
+  */
+private:
+  bool _thrust = false;
+  bool _shooting = false;
   bool _breaking = false;
+  bool _unbreakable = false;
+};
+
+class explosion
+  : public entity_t<iexplosion>
+{
+public:
+  explosion(const imodel::ptr& m)
+    : entity_t<iexplosion>(m)
+  {}
 };
 
 class engine
@@ -690,11 +612,7 @@ int main()
     t7.loadFromFile("images/explosions/type_B.png");
 
     text_proc text;
-    text.create("level", L"LEVEL: ", 20, 20);    
-    text.create("gun", L"GUN: ", 200, 20);
-    text.create("ships", L"SHIPS: ", 400, 20);
-    text.set("level", 1);
-    text.set("ships", 1);
+    text.create("gun", L"GUN: ", 20, 20);
     /*
     sf::Font font;//шрифт 
     font.loadFromFile("images/DroidSans.ttf");//передаем нашему шрифту файл шрифта
@@ -746,7 +664,7 @@ int main()
         if (auto mp = engine.get_player() )
         {
           p = new player();
-          sPlayer->set_alfa(150);
+          sPlayer->set_alfa(50);
           p->settings(*sPlayer, engine.get_player() );
           entities.push_back(p);
           std::cout << "entities new player" << std::endl;
