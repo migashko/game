@@ -41,7 +41,7 @@ public:
     _sprite.setOrigin(w/2,h/2);
     _sprite.setTextureRect(_frames[0]);
   }
-  
+
 void set_alfa(uint8_t alpha)
 {
   auto c = _sprite.getColor();
@@ -289,7 +289,7 @@ public:
   {
     return _fire;
   }
-  
+
   void breaking(bool value)
   {
     _breaking = value;
@@ -325,7 +325,7 @@ public:
   {
     std::cout << "asteroids: " << _asteroids.size() << " " << _new_asteroids.size() << std::endl;
     std::cout << "bullets: " << _bullets.size() << " " << _new_bullets.size() << std::endl;
-     
+
     this->update_player();
     this->update_bullets();
     this->update_asteroids();
@@ -339,7 +339,7 @@ public:
   {
     if ( _player!=nullptr)
       _player->update();
-    else 
+    else
     {
       auto now = high_resolution_clock::now();
       if ( 500 < duration_cast<std::chrono::milliseconds>(now - _death_time).count() )
@@ -434,7 +434,7 @@ public:
 
           if ( a->get_radius()==25 )
           {
-            for(int i=0;i<0;i++)
+            for(int i=0;i<32;i++)
             {
               auto sa = create_small_asteroid(a->get_position());
               _new_asteroids.push_back(sa);
@@ -513,14 +513,23 @@ public:
   }
 
 
-  bullet::ptr create_bullet()
+  /*bullet::ptr create_bullet()
   {
     if ( _player == nullptr )
       return nullptr;
     return std::make_shared<bullet>( _player->get_position(), _player->get_delta(), 25);
+  }*/
+
+  bullet::ptr create_bullet(float grad = 0 )
+  {
+    if ( _player == nullptr )
+      return nullptr;
+    auto p = _player->get_position();
+    p.a += grad;
+    return std::make_shared<bullet>( p, _player->get_delta(), /*25*/5);
   }
 
-  size_t get_fire_count() const 
+  size_t get_fire_count() const
   {
     return _fire_count;
   }
@@ -630,7 +639,7 @@ bool isCollide(entity *ma, entity *mb)
 class text_proc
 {
   typedef std::shared_ptr<sf::Text> text_ptr;
-  
+
   typedef std::map<std::string, text_ptr> text_map;
   typedef std::map<std::string, std::wstring> pref_map;
 public:
@@ -638,7 +647,7 @@ public:
   {
     _font.loadFromFile("images/DroidSans.ttf");//передаем нашему шрифту файл шрифта
   }
-  
+
   void create(const std::string& name, const std::wstring& pref, float x, float y)
   {
     auto t = std::make_shared<sf::Text>("", _font);
@@ -646,14 +655,14 @@ public:
     _pref[name]=pref;
     _texts[name]=t;
   }
-  
+
   void set(const std::string& name, size_t value)
   {
     std::wstringstream ss;
     ss << _pref[name] << value;
     _texts[name]->setString(ss.str());
   }
-  
+
   void draw(sf::RenderWindow &app)
   {
     for (auto& t : _texts)
@@ -665,7 +674,7 @@ public:
     */
   }
 
-  
+
 private:
   sf::Font _font;
   text_map _texts;
@@ -690,23 +699,23 @@ int main()
     t7.loadFromFile("images/explosions/type_B.png");
 
     text_proc text;
-    text.create("level", L"LEVEL: ", 20, 20);    
+    text.create("level", L"LEVEL: ", 20, 20);
     text.create("gun", L"GUN: ", 200, 20);
     text.create("ships", L"SHIPS: ", 400, 20);
     text.set("level", 1);
     text.set("ships", 1);
     /*
-    sf::Font font;//шрифт 
+    sf::Font font;//шрифт
     font.loadFromFile("images/DroidSans.ttf");//передаем нашему шрифту файл шрифта
 
-    
+
     sf::Text textLevel("", font);
     textLevel.setPosition(20,20);
 
     sf::Text textLevel("", font);
     textLevel.setPosition(20,20);
       */
-    
+
     t1.setSmooth(true);
     t2.setSmooth(true);
     //t1.setSrgb();
@@ -753,7 +762,7 @@ int main()
         }
       }
 
-      
+
       sf::Event event;
       if (app.pollEvent(event))
       {
@@ -769,7 +778,7 @@ int main()
         pm->thrust(sf::Keyboard::isKeyPressed(sf::Keyboard::Up));
         pm->breaking(sf::Keyboard::isKeyPressed(sf::Keyboard::Down));
       }
-      
+
 
       /////////////////////////////
       engine.update();
@@ -787,9 +796,9 @@ int main()
 
       if ( p != nullptr )
       {
-        if ( p->get_model()->is_thrust() ) 
+        if ( p->get_model()->is_thrust() )
           p->anim = *sPlayer_go;
-        else   
+        else
           p->anim = *sPlayer;
       }
 
@@ -807,7 +816,7 @@ int main()
         else
           a->settings(*sRock_small, am );
         entities.push_back(a);
-        
+
       }
 
       while ( auto em = engine.detach_new_explosions() )
@@ -816,10 +825,10 @@ int main()
         e->settings(*sExplosion, em );
         e->name="explosion";
         entities.push_back(e);
-        
+
       }
 
-      
+
       for(auto i=entities.begin();i!=entities.end();)
       {
         entity *e = *i;
@@ -827,13 +836,13 @@ int main()
 
         if ( !e->get_model()->is_life() )
         {
-          if ( e == p ) 
+          if ( e == p )
           {
             entity *ee = new entity();
             ee->settings(*sExplosion_ship, engine.create_explosion(p->get_model()->get_position() ) );
             ee->name="explosion";
             entities.push_back(ee);
-            p = nullptr; 
+            p = nullptr;
           }
           i=entities.erase(i);
           delete e;
@@ -841,7 +850,7 @@ int main()
         else
           i++;
       }
-      
+
       /*std::wstringstream ss;
       ss << L"\tLEVEL 1\tGUN: " << engine.get_fire_count() << L"\tCANNON: 0\t LIFE: 3"  << std::endl;
       text.setString(ss.str());*/
