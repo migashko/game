@@ -223,7 +223,7 @@ public:
     _pos.x+=_delta.x;
     _pos.y+=_delta.y;
 
-     if ( _pos.x>W || _pos.x<0 || _pos.y>H || _pos.y<0 )
+     if ( _pos.x > W || _pos.x < 0 || _pos.y > H || _pos.y < 0 )
        _life=false;
    }
 
@@ -247,10 +247,12 @@ public:
       _delta.x+=cos(_pos.a*DEGTORAD)*0.2;
       _delta.y+=sin(_pos.a*DEGTORAD)*0.2;
     }
-    else
+    else if ( _breaking )
     {
-      /*_delta.x*=0.99;
-      _delta.y*=0.99;*/
+      /*_delta.x*=0.98;
+      _delta.y*=0.98  ;*/
+      _delta.x*=0.95;
+      _delta.y*=0.95;
     }
 
     int maxSpeed=15;
@@ -279,8 +281,15 @@ public:
   {
     return _fire;
   }
+  
+  void breaking(bool value)
+  {
+    _breaking = value;
+  }
+
 
   bool _fire = false;
+  bool _breaking = false;
 };
 
 class engine
@@ -293,8 +302,9 @@ public:
 
   void initialize()
   {
+    _death_time = high_resolution_clock::now();
      _last_fire = high_resolution_clock::now();
-    _player = this->create_player();
+    //_player = this->create_player();
     for(int i=0;i<15;i++)
     {
       auto a = create_asteroid();
@@ -307,7 +317,8 @@ public:
   {
     std::cout << "asteroids: " << _asteroids.size() << " " << _new_asteroids.size() << std::endl;
     std::cout << "bullets: " << _bullets.size() << " " << _new_bullets.size() << std::endl;
-    _player->update();
+     
+    this->update_player();
     this->update_bullets();
     this->update_asteroids();
     this->update_explosions();
@@ -316,6 +327,19 @@ public:
     this->create_random_asteroid_or_not();
   }
 
+  void update_player()
+  {
+    if ( _player!=nullptr)
+      _player->update();
+    else 
+    {
+      auto now = high_resolution_clock::now();
+      if ( 2000 < duration_cast<std::chrono::milliseconds>(now - _death_time).count() )
+      {
+        _player = this->create_player();
+      }
+    }
+  }
   void update_bullets()
   {
     auto itr = _bullets.begin();
@@ -357,10 +381,10 @@ public:
 
   void fire_bullets()
   {
-    if ( _player->is_fire() )
+    if ( _player!=nullptr &&  _player->is_fire() )
     {
       auto now = high_resolution_clock::now();
-      if ( /*75000*/ /*35000*/ 10000 < duration_cast<std::chrono::microseconds>(now - _last_fire).count() )
+      if ( 75000 /*35000*/ /*10000*/ < duration_cast<std::chrono::microseconds>(now - _last_fire).count() )
       {
         _last_fire = now;
         auto b = create_bullet();
@@ -375,15 +399,18 @@ public:
     bool collide_player = false;
     for (const auto& a : _asteroids )
     {
-      if ( !collide_player && a->is_collide(*_player) )
+      if ( _player!=nullptr && !collide_player && a->is_collide(*_player) )
       {
         collide_player = true;
         a->kill(true);
+        _player->kill(true);
         auto b = create_explosion(a->get_position());
         _new_explosions.push_back(b);
         _explosions.push_back(b);
-        _player->set_position(position{W/2,H/2,0});
-        _player->set_delta(position{0,0,0});
+        _player.reset();
+        _death_time = high_resolution_clock::now();
+        //_player->set_position(position{W/2,H/2,0});
+        //_player->set_delta(position{0,0,0});
       }
 
       for (const auto& b : _bullets)
@@ -398,7 +425,7 @@ public:
 
           if ( a->get_radius()==25 )
           {
-            for(int i=0;i<8;i++)
+            for(int i=0;i<1;i++)
             {
               auto sa = create_small_asteroid(a->get_position());
               _new_asteroids.push_back(sa);
@@ -414,7 +441,7 @@ public:
 
   void create_random_asteroid_or_not()
   {
-    if ( rand()%/*1*/50==0 )
+    if ( /*rand()%150==0*/false )
     {
       auto a = create_asteroid();
       _new_asteroids.push_back(a);
@@ -457,7 +484,7 @@ public:
 
   static player::ptr create_player()
   {
-    return std::make_shared<player>( position{200,200,0},20 );
+    return std::make_shared<player>( position{ W/2, H/2, 0},20 );
   }
 
   static asteroid::ptr create_asteroid()
@@ -493,6 +520,7 @@ private:
   bullet_list _new_bullets;
   explosion_list _new_explosions;
   high_resolution_clock::time_point _last_fire;
+  high_resolution_clock::time_point _death_time;
 };
 
 }
@@ -611,8 +639,8 @@ int main()
     auto sRock=std::make_shared<animator>(t4, 0,0,64,64, 16, 0.2);
     auto sRock_small=std::make_shared<animator>(t6, 0,0,64,64, 16, 0.2);
     auto sBullet=std::make_shared<animator>(t5, 0,0,32,64, 16, 0.8);
-    auto sPlayer=std::make_shared<animator>(t1, 40,0,40,40, 1, 0);
-    auto sPlayer_go=std::make_shared<animator>(t1, 40,40,40,40, 1, 0);
+    auto sPlayer    = std::make_shared<animator>(t1, 40,0,40,40, 1, 0);
+    auto sPlayer_go = std::make_shared<animator>(t1, 40,40,40,40, 1, 0);
     auto sExplosion_ship=std::make_shared<animator>(t7, 0,0,192,192, 64, 0.5);
 
 
@@ -628,13 +656,25 @@ int main()
       entities.push_back(a);
     }
 
-    player *p = new player();
+    player *p = nullptr;/*new player();
     p->settings(*sPlayer, engine.get_player() );
-    entities.push_back(p);
+    entities.push_back(p);*/
 
     /////main loop/////
     while (app.isOpen())
     {
+      if ( p == nullptr )
+      {
+        if (auto mp = engine.get_player() )
+        {
+          p = new player();
+          p->settings(*sPlayer, engine.get_player() );
+          entities.push_back(p);
+          std::cout << "entities new player" << std::endl;
+        }
+      }
+
+      
       sf::Event event;
       if (app.pollEvent(event))
       {
@@ -642,12 +682,15 @@ int main()
           app.close();
       }
 
-      engine.get_player()->fire( sf::Keyboard::isKeyPressed(sf::Keyboard::Space) );
-
-      if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) p->get_model()->rotate(3);
-      if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  p->get_model()->rotate(-3);
-      if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) p->get_model()->thrust(true);
-      else p->get_model()->thrust(false);
+      if  ( auto pm = engine.get_player() )
+      {
+        pm->fire( sf::Keyboard::isKeyPressed(sf::Keyboard::Space) );
+        if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) pm->rotate(3);
+        if ( sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  pm->rotate(-3);
+        pm->thrust(sf::Keyboard::isKeyPressed(sf::Keyboard::Up));
+        pm->breaking(sf::Keyboard::isKeyPressed(sf::Keyboard::Down));
+      }
+      
 
       /////////////////////////////
       engine.update();
@@ -658,12 +701,18 @@ int main()
         bullet *b = new bullet();
         b->settings(*sBullet, nb);
         entities.push_back(b);
+        std::cout << "entities new bullet" << std::endl;
       }
 
       std::cout << "entities " << entities.size() << std::endl;
 
-      if (p->get_model()->is_thrust() )  p->anim = *sPlayer_go;
-      else   p->anim = *sPlayer;
+      if ( p != nullptr )
+      {
+        if ( p->get_model()->is_thrust() ) 
+          p->anim = *sPlayer_go;
+        else   
+          p->anim = *sPlayer;
+      }
 
       for(auto e:entities)
       {
@@ -679,6 +728,7 @@ int main()
         else
           a->settings(*sRock_small, am );
         entities.push_back(a);
+        std::cout << "entities new asteroid" << std::endl;
       }
 
       while ( auto em = engine.detach_new_explosions() )
@@ -687,6 +737,7 @@ int main()
         e->settings(*sExplosion, em );
         e->name="explosion";
         entities.push_back(e);
+        std::cout << "entities new explosions" << std::endl;
       }
 
       for(auto i=entities.begin();i!=entities.end();)
@@ -696,12 +747,14 @@ int main()
 
         if ( !e->get_model()->is_life() )
         {
+          if ( e == p ) p = nullptr;
           i=entities.erase(i);
           delete e;
         }
         else
           i++;
       }
+      
 
       //////draw//////
       app.draw(background);
