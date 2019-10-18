@@ -1,0 +1,58 @@
+#pragma once
+#include <memory>
+#include <SFML/Graphics.hpp>
+#include <model/asteroid.hpp>
+#include <model/types.hpp>
+#include <view/animator.hpp>
+#include <list>
+
+namespace view{
+
+struct ientity
+{
+  typedef std::shared_ptr<ientity> ptr;
+  virtual ~ientity() {}
+  virtual void update() = 0;
+  virtual void draw(sf::RenderWindow& app) = 0;
+};
+
+class asteroid: public ientity
+{
+public:
+  asteroid(const model::asteroid::ptr& am)
+    : _model(am)
+  {
+  }
+
+  void initialize()
+  {
+    _texture.loadFromFile("images/rock.png");
+    _animator.initialize(_texture, 0,0,64,64, 16, 0.2);
+  }
+
+  virtual void update()
+  {
+    _animator.update();
+  }
+
+  virtual void draw(sf::RenderWindow& app)
+  {
+     _animator
+     .draw(app, _model->get_position());
+      /*
+     sf::CircleShape circle(R);
+     circle.setFillColor(sf::Color(255,0,0,170));
+     circle.setPosition(x,y);
+     circle.setOrigin(R,R);
+     //app.draw(circle);
+      */
+  }
+private:
+  model::asteroid::ptr _model;
+  animator _animator;
+  sf::Texture _texture;
+
+};
+
+}
+

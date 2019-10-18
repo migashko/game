@@ -13,19 +13,19 @@ using namespace std::chrono;
 
 namespace model{
 
-  
+
 
 
 struct ibullet: ientity
 {
   typedef std::shared_ptr<ibullet> ptr;
   virtual ~ibullet() {}
-  // Определяет текстуру 
+  // Определяет текстуру
   virtual size_t type() const = 0;
 };
 
 
-// Описание оружия 
+// Описание оружия
 struct iweapon
 {
   typedef std::shared_ptr<iweapon> ptr;
@@ -35,7 +35,7 @@ struct iweapon
 struct iship: ientity
 {
 public:
-  // Определяет текстуру 
+  // Определяет текстуру
   virtual size_t type() const = 0;
   // Неуязвимый
   virtual bool is_unbreakable() const = 0;
@@ -45,7 +45,7 @@ public:
   virtual bool is_breaking() const = 0;
   // ведет стрельбу ( 0 нет, степень ускорения )
   virtual bool is_shooting() const = 0;
-  
+
   virtual iweapon::ptr get_weapon() const = 0;
 };
 
@@ -53,38 +53,12 @@ public:
 class iexplosion: ientity
 {
 public:
-  // Определяет текстуру 
+  // Определяет текстуру
   virtual size_t type() const = 0;
 }
 
 
 
-class asteroid: public entity_t<iasteroid>
-{
-public:
-  typedef std::shared_ptr<asteroid> ptr;
-
-  asteroid(const imodel::ptr& m)
-    : entity_t<iasteroid>(m)
-  {
-    this->set_delta(position{rand()%8-4, rand()%8-4});
-  }
-
-  virtual void update() override
-  {
-    position p = this->get_position();
-    position d = this->get_delta();
-    
-    p.x+=d.x;
-    p.y+=d.y;
-
-    if ( p.x>W ) p.x = 0;
-    if ( p.x<0 ) p.x = W;
-    if ( p.y>H ) p.y=0;
-    if ( p.y<0 ) p.y = H;
-    this->set_position(p);
-  }
-};
 
 class bullet: public entity_t<ibullet>
 {
@@ -182,17 +156,17 @@ public:
   {
     return _shooting;
   }
-  
+
   void breaking(bool value)
   {
     _breaking = value;
   }
-  
+
   virtual bool is_breaking() const override
   {
     return _breaking;
   }
-  
+
   virtual bool is_unbreakable() const override
   {
     return _unbreakable;
@@ -247,7 +221,7 @@ public:
   {
     std::cout << "asteroids: " << _asteroids.size() << " " << _new_asteroids.size() << std::endl;
     std::cout << "bullets: " << _bullets.size() << " " << _new_bullets.size() << std::endl;
-     
+
     this->update_player();
     this->update_bullets();
     this->update_asteroids();
@@ -261,7 +235,7 @@ public:
   {
     if ( _player!=nullptr)
       _player->update();
-    else 
+    else
     {
       auto now = high_resolution_clock::now();
       if ( 500 < duration_cast<std::chrono::milliseconds>(now - _death_time).count() )
@@ -442,7 +416,7 @@ public:
     return std::make_shared<bullet>( _player->get_position(), _player->get_delta(), 25);
   }
 
-  size_t get_fire_count() const 
+  size_t get_fire_count() const
   {
     return _fire_count;
   }
@@ -552,7 +526,7 @@ bool isCollide(entity *ma, entity *mb)
 class text_proc
 {
   typedef std::shared_ptr<sf::Text> text_ptr;
-  
+
   typedef std::map<std::string, text_ptr> text_map;
   typedef std::map<std::string, std::wstring> pref_map;
 public:
@@ -560,7 +534,7 @@ public:
   {
     _font.loadFromFile("images/DroidSans.ttf");//передаем нашему шрифту файл шрифта
   }
-  
+
   void create(const std::string& name, const std::wstring& pref, float x, float y)
   {
     auto t = std::make_shared<sf::Text>("", _font);
@@ -568,14 +542,14 @@ public:
     _pref[name]=pref;
     _texts[name]=t;
   }
-  
+
   void set(const std::string& name, size_t value)
   {
     std::wstringstream ss;
     ss << _pref[name] << value;
     _texts[name]->setString(ss.str());
   }
-  
+
   void draw(sf::RenderWindow &app)
   {
     for (auto& t : _texts)
@@ -587,7 +561,7 @@ public:
     */
   }
 
-  
+
 private:
   sf::Font _font;
   text_map _texts;
@@ -614,17 +588,17 @@ int main()
     text_proc text;
     text.create("gun", L"GUN: ", 20, 20);
     /*
-    sf::Font font;//шрифт 
+    sf::Font font;//шрифт
     font.loadFromFile("images/DroidSans.ttf");//передаем нашему шрифту файл шрифта
 
-    
+
     sf::Text textLevel("", font);
     textLevel.setPosition(20,20);
 
     sf::Text textLevel("", font);
     textLevel.setPosition(20,20);
       */
-    
+
     t1.setSmooth(true);
     t2.setSmooth(true);
     //t1.setSrgb();
@@ -671,7 +645,7 @@ int main()
         }
       }
 
-      
+
       sf::Event event;
       if (app.pollEvent(event))
       {
@@ -687,7 +661,7 @@ int main()
         pm->thrust(sf::Keyboard::isKeyPressed(sf::Keyboard::Up));
         pm->breaking(sf::Keyboard::isKeyPressed(sf::Keyboard::Down));
       }
-      
+
 
       /////////////////////////////
       engine.update();
@@ -705,9 +679,9 @@ int main()
 
       if ( p != nullptr )
       {
-        if ( p->get_model()->is_thrust() ) 
+        if ( p->get_model()->is_thrust() )
           p->anim = *sPlayer_go;
-        else   
+        else
           p->anim = *sPlayer;
       }
 
@@ -725,7 +699,7 @@ int main()
         else
           a->settings(*sRock_small, am );
         entities.push_back(a);
-        
+
       }
 
       while ( auto em = engine.detach_new_explosions() )
@@ -734,10 +708,10 @@ int main()
         e->settings(*sExplosion, em );
         e->name="explosion";
         entities.push_back(e);
-        
+
       }
 
-      
+
       for(auto i=entities.begin();i!=entities.end();)
       {
         entity *e = *i;
@@ -745,13 +719,13 @@ int main()
 
         if ( !e->get_model()->is_life() )
         {
-          if ( e == p ) 
+          if ( e == p )
           {
             entity *ee = new entity();
             ee->settings(*sExplosion_ship, engine.create_explosion(p->get_model()->get_position() ) );
             ee->name="explosion";
             entities.push_back(ee);
-            p = nullptr; 
+            p = nullptr;
           }
           i=entities.erase(i);
           delete e;
@@ -759,7 +733,7 @@ int main()
         else
           i++;
       }
-      
+
       /*std::wstringstream ss;
       ss << L"\tLEVEL 1\tGUN: " << engine.get_fire_count() << L"\tCANNON: 0\t LIFE: 3"  << std::endl;
       text.setString(ss.str());*/
