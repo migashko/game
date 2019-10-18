@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <view/asteroid.hpp>
 #include <view/explosion.hpp>
+#include <view/ship.hpp>
 #include <view/animator.hpp>
 #include <iostream>
 
@@ -24,6 +25,7 @@ public:
     _asteroid_texture.loadFromFile("images/rock.png");
     _asteroid_small_texture.loadFromFile("images/rock_small.png");
     _asteroid_explosion_texture.loadFromFile("images/explosions/type_C.png");
+    _ship_texture.loadFromFile("images/spaceship.png");
   }
 
   void update()
@@ -42,6 +44,13 @@ public:
     {
       auto va = std::make_shared<explosion>(ma);
       va->initialize(_asteroid_explosion_texture);
+      _entities.push_back(va);
+    }
+
+    while ( auto ma = _model->detach_new_ship() )
+    {
+      auto va = std::make_shared<ship>(ma);
+      va->initialize(_ship_texture);
       _entities.push_back(va);
     }
 
@@ -76,6 +85,8 @@ private:
   sf::Texture _asteroid_texture;
   sf::Texture _asteroid_small_texture;
   sf::Texture _asteroid_explosion_texture;
+  sf::Texture _ship_texture;
+  sf::Texture _ship_thrust_texture;
 
   std::list<ientity::ptr> _entities;
 };

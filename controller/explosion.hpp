@@ -32,13 +32,11 @@ public:
 
   virtual void update() override
   {
-    //std::cout << "explosion " << _life << std::endl;
     if ( _life > 0 )
     {
       --_life;
       if ( _life == 0 ) 
       {
-        std::cout << "kill!!!!!!!! "<< std::endl;
         _model_explosion->kill(true);
       }
     }

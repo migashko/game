@@ -23,4 +23,12 @@ inline position middle( const position& left, const position& right)
   return res;
 }
 
+position rotate(const position& p,  float da)
+{
+  position res = p;
+  res.a += da;
+  return res;
+}
+
+
 }

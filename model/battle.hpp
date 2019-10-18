@@ -2,6 +2,7 @@
 #include <model/types.hpp>
 #include <model/asteroid.hpp>
 #include <model/explosion.hpp>
+#include <model/ship.hpp>
 #include <memory>
 #include <list>
 
@@ -14,6 +15,7 @@ public:
   typedef std::shared_ptr<battle> ptr;
   typedef std::list<asteroid::ptr> asteroid_list_t;
   typedef std::list<explosion::ptr> explosion_list_t;
+  typedef std::list<ship::ptr> ship_list_t;
   
   position space_size() const
   {
@@ -35,6 +37,14 @@ public:
     return _explosions.back();
   }
 
+  ship::ptr create_ship(const position& p)
+  {
+    _ships.push_back( std::make_shared<ship>());
+    _ships.back()->set_position(p);
+    _new_ships.push_back(_ships.back());
+    return _ships.back();
+  }
+
   asteroid::ptr detach_new_asteroid()
   {
     if ( _new_asteroids.empty() )
@@ -53,6 +63,15 @@ public:
     return a;
   }
 
+  ship::ptr detach_new_ship()
+  {
+    if ( _new_ships.empty() )
+      return nullptr;
+    auto a  = _new_ships.front();
+    _new_ships.pop_front();
+    return a;
+  }
+  
   const asteroid_list_t& get_asteroids() const
   {
     return _asteroids;
@@ -64,6 +83,9 @@ private:
   
   explosion_list_t _explosions;
   explosion_list_t _new_explosions;
+
+  ship_list_t _ships;
+  ship_list_t _new_ships;
   
 };
 

@@ -15,7 +15,7 @@ int main()
     battle_controller.initialize();
     /////main loop/////
     battle_view->initialize();
-    while (app.isOpen())
+    while (app.isOpen() && !sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
     {
       sf::Event event;
       if (app.pollEvent(event))
@@ -23,6 +23,12 @@ int main()
         if (event.type == sf::Event::Closed)
           return 0;
       }
+      
+      battle_controller.shuting( sf::Keyboard::isKeyPressed(sf::Keyboard::Space) );
+      battle_controller.rotate_right(sf::Keyboard::isKeyPressed(sf::Keyboard::Right));
+      battle_controller.rotate_left(sf::Keyboard::isKeyPressed(sf::Keyboard::Left));
+      battle_controller.thrust(sf::Keyboard::isKeyPressed(sf::Keyboard::Up));
+      battle_controller.breaking(sf::Keyboard::isKeyPressed(sf::Keyboard::Down));
 
       battle_controller.update();
       battle_view->update();
