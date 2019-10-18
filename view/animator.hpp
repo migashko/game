@@ -17,7 +17,7 @@ public:
 
   }
 
-  void initialize(sf::Texture &t, int x, int y, int w, int h, int count, float Speed)
+  void initialize(const sf::Texture &t, int x, int y, int w, int h, int count, float Speed)
   {
     _current_frame = 0;
     _speed = Speed;

@@ -14,4 +14,13 @@ struct position
   float a = 0.0; // угол
 };
 
+inline position middle( const position& left, const position& right)
+{
+  position res;
+  res.x = (left.x + right.x)/2;
+  res.y = (left.y + right.y)/2;
+  res.a = (left.a + right.a)/2;
+  return res;
+}
+
 }

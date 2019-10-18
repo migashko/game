@@ -1,5 +1,5 @@
 #pragma once
-#include <model/entity_t.hpp>
+#include <model/entity.hpp>
 #include <memory>
 
 namespace model{
@@ -9,9 +9,14 @@ class asteroid: public entity
 public:
   typedef std::shared_ptr<asteroid> ptr;
 
-  virtual size_t size() const
+  size_t get_size() const
   {
-    return 1;
+    return _size;
+  }
+
+  void set_size(size_t s)
+  {
+    _size = s;
   }
 
   // Определяет текстуру
@@ -20,6 +25,8 @@ public:
     return 0;
   }
 
+private:
+  size_t _size = 1;
 };
 
 }

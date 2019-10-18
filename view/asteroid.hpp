@@ -4,17 +4,11 @@
 #include <model/asteroid.hpp>
 #include <model/types.hpp>
 #include <view/animator.hpp>
+#include <view/ientity.hpp>
 #include <list>
 
 namespace view{
 
-struct ientity
-{
-  typedef std::shared_ptr<ientity> ptr;
-  virtual ~ientity() {}
-  virtual void update() = 0;
-  virtual void draw(sf::RenderWindow& app) = 0;
-};
 
 class asteroid: public ientity
 {
@@ -24,10 +18,10 @@ public:
   {
   }
 
-  void initialize()
+  void initialize(const sf::Texture& texture)
   {
-    _texture.loadFromFile("images/rock.png");
-    _animator.initialize(_texture, 0,0,64,64, 16, 0.2);
+    //_texture = &texture;
+    _animator.initialize(texture, 0, 0, 64, 64, 16, 0.2);
   }
 
   virtual void update()
@@ -47,10 +41,15 @@ public:
      //app.draw(circle);
       */
   }
+  
+  virtual bool is_life() const
+  {
+    return _model->is_life();
+  }
 private:
   model::asteroid::ptr _model;
   animator _animator;
-  sf::Texture _texture;
+  //const sf::Texture* _texture;
 
 };
 
