@@ -4,6 +4,7 @@
 #include <view/asteroid.hpp>
 #include <view/explosion.hpp>
 #include <view/ship.hpp>
+#include <view/bullet.hpp>
 #include <view/animator.hpp>
 #include <iostream>
 
@@ -21,11 +22,13 @@ public:
     _background_texture.loadFromFile("images/background.jpg");
     _background_texture.setSmooth(true);
     _background_sprite.setTexture(_background_texture);
-    
+
     _asteroid_texture.loadFromFile("images/rock.png");
     _asteroid_small_texture.loadFromFile("images/rock_small.png");
     _asteroid_explosion_texture.loadFromFile("images/explosions/type_C.png");
     _ship_texture.loadFromFile("images/spaceship.png");
+
+    _bullet_red_texture.loadFromFile("images/fire_red.png");
   }
 
   void update()
@@ -54,14 +57,20 @@ public:
       _entities.push_back(va);
     }
 
-    
+    while ( auto ma = _model->detach_new_bullet() )
+    {
+      auto va = std::make_shared<bullet>(ma);
+      va->initialize(_bullet_red_texture);
+      _entities.push_back(va);
+    }
+
     for ( auto& e : _entities)
       e->update();
-    
+
     _entities.erase(
       std::remove_if(
         _entities.begin(),
-        _entities.end(), 
+        _entities.end(),
         [](const ientity::ptr& e) { return !e->is_life(); }
       ),
       _entities.end()
@@ -71,7 +80,7 @@ public:
   void draw(sf::RenderWindow& app)
   {
     //std::cout << "draw: " << _entities.size() << std::endl;;
-    
+
     app.draw(_background_sprite);
     for ( auto& e : _entities)
       e->draw(app);
@@ -81,12 +90,13 @@ private:
   model::battle::ptr _model;
   sf::Texture _background_texture;
   sf::Sprite _background_sprite;
-  
+
   sf::Texture _asteroid_texture;
   sf::Texture _asteroid_small_texture;
   sf::Texture _asteroid_explosion_texture;
   sf::Texture _ship_texture;
   sf::Texture _ship_thrust_texture;
+  sf::Texture _bullet_red_texture;
 
   std::list<ientity::ptr> _entities;
 };

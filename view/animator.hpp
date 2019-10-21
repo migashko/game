@@ -60,6 +60,16 @@ public:
     app.draw(_sprite);
   }
 
+
+  void draw_circle(sf::RenderWindow &app, const model::position& pos, float R)
+  {
+    sf::CircleShape circle(R);
+    circle.setFillColor(sf::Color(255,0,0,170));
+    circle.setPosition(pos.x,pos.y);
+    circle.setOrigin(R,R);
+    app.draw(circle);
+  }
+
 private:
    float _current_frame = 0.0;
    float _speed = 0.0;

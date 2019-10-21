@@ -3,6 +3,7 @@
 //#include <model/imodel.hpp>
 #include <memory>
 #include <iostream>
+#include <cmath>
 
 namespace model{
 
@@ -62,9 +63,9 @@ public:
     float ar = this->get_radius();
     position b = other.get_position();
     float br = other.get_radius();
-    return (b.x - a.x)*(b.x - a.x)+
-           (b.y - a.y)*(b.y - a.y)<
-           (ar + br)*(ar + br);
+    //return (b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y) < (ar + br)*(ar + br);
+    return std::hypot(b.x - a.x, b.y - a.y) < ar + br;
+
   }
 
 protected:

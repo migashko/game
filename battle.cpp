@@ -23,7 +23,7 @@ int main()
         if (event.type == sf::Event::Closed)
           return 0;
       }
-      
+
       battle_controller.shuting( sf::Keyboard::isKeyPressed(sf::Keyboard::Space) );
       battle_controller.rotate_right(sf::Keyboard::isKeyPressed(sf::Keyboard::Right));
       battle_controller.rotate_left(sf::Keyboard::isKeyPressed(sf::Keyboard::Left));

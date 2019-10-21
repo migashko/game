@@ -1,8 +1,8 @@
 #pragma once
 
 namespace model{
-  
-// Максимально допустимые размеры поля 
+
+// Максимально допустимые размеры поля
 constexpr int MAXW = 1200;
 constexpr int MAXH = 800;
 constexpr float DEGTORAD = 0.017453f;
@@ -27,6 +27,8 @@ position rotate(const position& p,  float da)
 {
   position res = p;
   res.a += da;
+  if ( res.a > 360 ) res.a -= 360;
+  if ( res.a < 0 ) res.a += 360;
   return res;
 }
 

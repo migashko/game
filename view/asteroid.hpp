@@ -31,17 +31,19 @@ public:
 
   virtual void draw(sf::RenderWindow& app)
   {
-     _animator
-     .draw(app, _model->get_position());
-      /*
+    _animator.draw(app, _model->get_position());
+    //_animator.draw_circle(app, _model->get_position(), _model->get_radius());
+    //std::cout << _model->get_radius() << std::endl;
+    /*
      sf::CircleShape circle(R);
      circle.setFillColor(sf::Color(255,0,0,170));
      circle.setPosition(x,y);
      circle.setOrigin(R,R);
-     //app.draw(circle);
-      */
+     _animator.app.draw(circle);
+     */
+
   }
-  
+
   virtual bool is_life() const
   {
     return _model->is_life();

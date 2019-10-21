@@ -3,6 +3,7 @@
 #include <model/asteroid.hpp>
 #include <model/explosion.hpp>
 #include <model/ship.hpp>
+#include <model/bullet.hpp>
 #include <memory>
 #include <list>
 
@@ -16,7 +17,8 @@ public:
   typedef std::list<asteroid::ptr> asteroid_list_t;
   typedef std::list<explosion::ptr> explosion_list_t;
   typedef std::list<ship::ptr> ship_list_t;
-  
+  typedef std::list<bullet::ptr> bullet_list_t;
+
   position space_size() const
   {
     return position{MAXW, MAXH, 0};
@@ -45,6 +47,14 @@ public:
     return _ships.back();
   }
 
+  bullet::ptr create_bullet(const position& p)
+  {
+    _bullets.push_back( std::make_shared<bullet>());
+    _bullets.back()->set_position(p);
+    _new_bullets.push_back(_bullets.back());
+    return _bullets.back();
+  }
+
   asteroid::ptr detach_new_asteroid()
   {
     if ( _new_asteroids.empty() )
@@ -71,7 +81,16 @@ public:
     _new_ships.pop_front();
     return a;
   }
-  
+
+  bullet::ptr detach_new_bullet()
+  {
+    if ( _new_bullets.empty() )
+      return nullptr;
+    auto a  = _new_bullets.front();
+    _new_bullets.pop_front();
+    return a;
+  }
+
   const asteroid_list_t& get_asteroids() const
   {
     return _asteroids;
@@ -80,13 +99,16 @@ public:
 private:
   asteroid_list_t _asteroids;
   asteroid_list_t _new_asteroids;
-  
+
   explosion_list_t _explosions;
   explosion_list_t _new_explosions;
 
   ship_list_t _ships;
   ship_list_t _new_ships;
-  
+
+  bullet_list_t _bullets;
+  bullet_list_t _new_bullets;
+
 };
 
 

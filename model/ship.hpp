@@ -4,26 +4,24 @@
 
 namespace model{
 
-
-  
 class ship: public entity
 {
 public:
 
-enum states:size_t 
-{
-  THRUST = 1,
-  BREAKING = 2,
-  ROTATE_LEFT = 4,
-  ROTATE_RIGHT = 8,
-  SHOOTING = 16,
-  UNBREAKABLE = 32
-};
-  
+  enum states:size_t
+  {
+    THRUST = 1,
+    BREAKING = 2,
+    ROTATE_LEFT = 4,
+    ROTATE_RIGHT = 8,
+    SHOOTING = 16,
+    UNBREAKABLE = 32
+  };
+
   typedef std::shared_ptr<ship> ptr;
 
   // Определяет текстуру
-  virtual void set_state(size_t value ) 
+  virtual void set_state(size_t value )
   {
     _state = value ;
   }
@@ -33,7 +31,7 @@ enum states:size_t
   {
     return _state;
   }
-  
+
   template<states s>
   constexpr bool has_state() const
   {
