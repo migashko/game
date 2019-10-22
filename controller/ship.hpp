@@ -58,10 +58,9 @@ public:
   {
     model::position p = _model_ship->get_position();
     model::position d = _model_ship->get_delta();
+    //std::cout << "Update " << _model_ship->get_state() << std::endl;
     bool is_trust = _model_ship->has_state<model::ship::THRUST>();
     bool is_breaking = _model_ship->has_state<model::ship::BREAKING>();
-
-
 
     if ( _model_ship->has_state<model::ship::ROTATE_LEFT>() )
     {
@@ -130,14 +129,14 @@ public:
   static ship::ptr create(const model::position& p, const model::battle::ptr& m)
   {
     model::ship::ptr a = m->create_ship(p);
-    a->set_radius(20);
+    //a->set_radius(20);
     return std::make_shared<ship>(a, m);
   }
 
   static ship::ptr create(const model::battle::ptr& m)
   {
     auto square = m->space_size();
-    return create(model::position{ float(square.x/2), float(square.y/2), 0}, m);
+    return create(model::position{ float(square.x/2), float(square.y/2), 0.0, 20}, m);
   }
 
   model::ship::ptr get_model() const

@@ -35,6 +35,16 @@ public:
       _animator_thrust.draw(app, _model->get_position());
     else
       _animator.draw(app, _model->get_position());
+    
+    /*
+    for (auto e: _model->get_radar() )
+    {
+      auto p = e.get_position();
+      p.r = distance(_model->get_position(), p);
+      p.a = angle(_model->get_position(), p);
+
+      _animator.draw_line(app, p);
+    }*/
   }
   
   virtual bool is_life() const

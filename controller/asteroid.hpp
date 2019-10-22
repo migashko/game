@@ -108,14 +108,13 @@ public:
     if ( dx == 0 )
       dx = 1;
     a->set_delta( model::position{ float(dx), float(dy)});
-    a->set_radius(20);
     return std::make_shared<asteroid>(a, m);
   }
 
   static asteroid::ptr create(const model::battle::ptr& m)
   {
     auto square = m->space_size();
-    return create(model::position{ 0, float(rand()%int(square.y)), float(rand()%360)}, m);
+    return create(model::position{ 0, float(rand()%int(square.y)), float(rand()%360), 20.0}, m);
   }
 
   model::asteroid::ptr get_model() const

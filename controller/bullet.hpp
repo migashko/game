@@ -74,7 +74,7 @@ public:
     db.x+=cos(p.a*model::DEGTORAD)*6;
     db.y+=sin(p.a*model::DEGTORAD)*6;
     a->set_delta(db);
-    a->set_radius(5);
+    //a->set_radius(5);
     return std::make_shared<bullet>(a, m);
   }
 

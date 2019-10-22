@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <cmath>
 
 namespace model{
 
@@ -6,13 +8,32 @@ namespace model{
 constexpr int MAXW = 1200;
 constexpr int MAXH = 800;
 constexpr float DEGTORAD = 0.017453f;
+// Объектов на радаре
+constexpr int MAXRADAR = 30;
+// Глубина прогноза для каждого объекта
+constexpr int FORECAST_DEPTH = 150;
+
+// Проработка ходов для каждого корабля 
+constexpr int PREDICTION_DEPTH = /*100*/10;
+constexpr int PREDICTION_REP = /*100*/5;
 
 struct position
 {
   float x = 0.0;
   float y = 0.0;
   float a = 0.0; // угол
+  float r = 0.0; // Радиус
 };
+
+inline size_t distance( const position& left, const position& right)
+{
+  return std::hypot(right.x - left.x, right.y - left.y);
+}
+
+inline float angle( const position& left, const position& right)
+{
+  return std::atan2(left.y - right.y, left.x - right.x)/DEGTORAD;
+}
 
 inline position middle( const position& left, const position& right)
 {
@@ -23,7 +44,7 @@ inline position middle( const position& left, const position& right)
   return res;
 }
 
-position rotate(const position& p,  float da)
+inline position rotate(const position& p,  float da)
 {
   position res = p;
   res.a += da;

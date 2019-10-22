@@ -17,10 +17,10 @@ public:
     return _pos;
   }
 
-  float get_radius() const
+  /*float get_radius() const
   {
     return _radius;
-  }
+  }*/
 
   bool is_life() const
   {
@@ -37,10 +37,10 @@ public:
     _pos.a += da;
   }
 
-  void set_radius(float r)
+  /*void set_radius(float r)
   {
     _radius = r;
-  }
+  }*/
 
   void kill(bool value)
   {
@@ -60,18 +60,18 @@ public:
   bool is_collide(const entity& other)
   {
     position a = this->get_position();
-    float ar = this->get_radius();
     position b = other.get_position();
-    float br = other.get_radius();
     //return (b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y) < (ar + br)*(ar + br);
-    return std::hypot(b.x - a.x, b.y - a.y) < ar + br;
+    
+    //return std::hypot(b.x - a.x, b.y - a.y) < a.r + b.r;
+    //return false;
+    return distance(a, b) < a.r + b.r;
   }
 
 
 protected:
   position _pos;
   position _delta;
-  int _radius = 0;
   bool _life = true;
 /*private:
   imodel::ptr _model;*/

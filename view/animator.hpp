@@ -70,6 +70,20 @@ public:
     app.draw(circle);
   }
 
+  void draw_line(sf::RenderWindow &app, const model::position& p)
+  {
+    sf::RectangleShape line(sf::Vector2f(p.r, 2));
+    line.rotate(p.a);
+    line.setPosition(p.x, p.y);
+    app.draw(line);
+    /*sf::CircleShape circle(R);
+    circle.setFillColor(sf::Color(255,0,0,170));
+    circle.setPosition(pos.x,pos.y);
+    circle.setOrigin(R,R);
+    app.draw(circle);
+    */
+  }
+
 private:
    float _current_frame = 0.0;
    float _speed = 0.0;
