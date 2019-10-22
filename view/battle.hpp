@@ -27,6 +27,7 @@ public:
     _asteroid_small_texture.loadFromFile("images/rock_small.png");
     _asteroid_explosion_texture.loadFromFile("images/explosions/type_C.png");
     _ship_texture.loadFromFile("images/spaceship.png");
+    _ship_explosion_texture.loadFromFile("images/explosions/type_B.png");
 
     _bullet_red_texture.loadFromFile("images/fire_red.png");
   }
@@ -46,7 +47,10 @@ public:
     while ( auto ma = _model->detach_new_explosion() )
     {
       auto va = std::make_shared<explosion>(ma);
-      va->initialize(_asteroid_explosion_texture);
+      if ( ma->get_type() == 0)
+        va->initialize(_asteroid_explosion_texture);
+      else
+        va->initialize(_ship_explosion_texture);
       _entities.push_back(va);
     }
 
@@ -94,8 +98,10 @@ private:
   sf::Texture _asteroid_texture;
   sf::Texture _asteroid_small_texture;
   sf::Texture _asteroid_explosion_texture;
+  sf::Texture _ship_explosion_texture;
   sf::Texture _ship_texture;
-  sf::Texture _ship_thrust_texture;
+  sf::Texture _ship_thrust_texture
+  ;
   sf::Texture _bullet_red_texture;
 
   std::list<ientity::ptr> _entities;

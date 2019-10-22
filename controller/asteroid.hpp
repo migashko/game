@@ -31,9 +31,28 @@ public:
     _square = _model_battle->space_size();
   }
 
+   ptr clone()
+  {
+    return std::make_shared<asteroid>( std::make_shared<model::asteroid>(*_model_asteroid), _model_battle);
+  }
+
+  // для прогноза
+  model::position next(const model::position& cur) const
+  {
+    model::position p = cur;
+    model::position d = _model_asteroid->get_delta();
+    p.x+=d.x;
+    p.y+=d.y;
+    if ( p.x > _square.x ) p.x = 0;
+    if ( p.x < 0 ) p.x = _square.x;
+    if ( p.y > _square.y ) p.y=0;
+    if ( p.y < 0 ) p.y = _square.y;
+    return p;
+  }
+
   virtual void update() override
   {
-    model::position p = _model_asteroid->get_position();
+    /*model::position p = _model_asteroid->get_position();
     model::position d = _model_asteroid->get_delta();
 
     p.x+=d.x;
@@ -42,23 +61,24 @@ public:
     if ( p.x > _square.x ) p.x = 0;
     if ( p.x < 0 ) p.x = _square.x;
     if ( p.y > _square.y ) p.y=0;
-    if ( p.y < 0 ) p.y = _square.y;
+    if ( p.y < 0 ) p.y = _square.y;*/
 
+    auto p = this->next(_model_asteroid->get_position());
     _model_asteroid->set_position(p);
     if ( _collision_ban!=0 )
       --_collision_ban;
   }
-  
+
   bool is_life() const
   {
     return _model_asteroid->is_life();
   }
-  
+
   bool is_collide(const asteroid& other)
   {
     if ( !_model_asteroid->is_life() )
       return false;
-    
+
     if ( _collision_ban!=0 )
       return false;
     return _model_asteroid->is_collide(*other.get_model());
@@ -75,9 +95,9 @@ public:
     if ( dead )
       _model_asteroid->kill(true);
     return dead;
-    
+
   }
-  
+
   static asteroid::ptr create(const model::position& p, const model::battle::ptr& m)
   {
     model::asteroid::ptr a = m->create_asteroid();

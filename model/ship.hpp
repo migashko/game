@@ -10,8 +10,8 @@ public:
 
   enum states:size_t
   {
-    THRUST = 1,
-    BREAKING = 2,
+    BREAKING = 1,
+    THRUST = 2,
     ROTATE_LEFT = 4,
     ROTATE_RIGHT = 8,
     SHOOTING = 16,
