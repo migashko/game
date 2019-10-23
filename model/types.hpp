@@ -11,9 +11,9 @@ constexpr float DEGTORAD = 0.017453f;
 // Объектов на радаре
 constexpr int MAXRADAR = 30;
 // Глубина прогноза для каждого объекта
-constexpr int FORECAST_DEPTH = 150;
+constexpr int FORECAST_DEPTH = 50;
 
-// Проработка ходов для каждого корабля 
+// Проработка ходов для каждого корабля
 constexpr int PREDICTION_DEPTH = /*100*/10;
 constexpr int PREDICTION_REP = /*100*/5;
 

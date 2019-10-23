@@ -21,7 +21,7 @@ public:
     SHOOTING = 16,
     UNBREAKABLE = 32
   };
-  
+
   /*typedef std::pair<states, position> one_move_t;*/
   typedef size_t one_move_t;
   typedef std::deque<one_move_t> move_list_t;
@@ -54,17 +54,17 @@ public:
     else
       _state &= ~static_cast<size_t>(s);
   }
-  
+
   const radar_list_t& get_radar() const
   {
     return _radar;
   }
 
-  void set_radar(const std::vector<entity>& v) 
+  void set_radar(const std::vector<entity>& v)
   {
     _radar = v;
   }
-  void add_radar(const entity& p) 
+  void add_radar(const entity& p)
   {
     auto itr = std::upper_bound(_radar.begin(), _radar.end(), p, [this](const entity& left, const entity& right){
       return distance( this->_pos, left.get_position()) < distance( this->_pos, right.get_position());
@@ -73,12 +73,12 @@ public:
     if ( _radar.size() > MAXRADAR )
       _radar.pop_back();
   }
-  
+
   bool apply(bool automod)
   {
     if ( _moves.empty() )
       return false;
-    
+
     if ( automod )
     {
       _state = _moves.front();
@@ -89,14 +89,14 @@ public:
     _moves.pop_front();
     return true;
   }
-  
+
   const move_list_t& get_course() const
   {
     return _moves;
   }
-  
 
-  void set_course(const move_list_t& m) 
+
+  void set_course(const move_list_t& m)
   {
     _moves = m;
   }

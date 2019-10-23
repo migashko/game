@@ -39,6 +39,11 @@ public:
     return std::make_shared<ship>( std::make_shared<model::ship>(*_model_ship), _model_battle);
   }
 
+  model::battle::ptr get_model_battle() const
+  {
+    return _model_battle;
+  }
+
   // для прогноза
   model::position next(const model::position& cur) const
   {
@@ -142,6 +147,11 @@ public:
   model::ship::ptr get_model() const
   {
     return _model_ship;
+  }
+
+  void set_model(const model::ship& m)
+  {
+    *_model_ship = m;
   }
 
   void rotate_left(bool value)

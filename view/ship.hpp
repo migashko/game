@@ -31,12 +31,6 @@ public:
 
   virtual void draw(sf::RenderWindow& app)
   {
-    if ( _model->has_state<model::ship::THRUST>() )
-      _animator_thrust.draw(app, _model->get_position());
-    else
-      _animator.draw(app, _model->get_position());
-    
-    /*
     for (auto e: _model->get_radar() )
     {
       auto p = e.get_position();
@@ -44,9 +38,16 @@ public:
       p.a = angle(_model->get_position(), p);
 
       _animator.draw_line(app, p);
-    }*/
+    }
+
+    if ( _model->has_state<model::ship::THRUST>() )
+      _animator_thrust.draw(app, _model->get_position());
+    else
+      _animator.draw(app, _model->get_position());
+
+
   }
-  
+
   virtual bool is_life() const
   {
     return _model->is_life();

@@ -95,7 +95,14 @@ public:
     if ( dead )
       _model_asteroid->kill(true);
     return dead;
+  }
 
+
+  bool collision(asteroid& other, const model::entity& ship)
+  {
+    if ( distance(ship.get_position(), _model_asteroid->get_position()) < _square.x / 5 )
+       return false;
+    return collision(other);
   }
 
   static asteroid::ptr create(const model::position& p, const model::battle::ptr& m)
@@ -121,6 +128,12 @@ public:
   {
     return _model_asteroid;
   }
+
+  void set_model(const model::asteroid& m)
+  {
+    *_model_asteroid = m;
+  }
+
 private:
 
 private:
